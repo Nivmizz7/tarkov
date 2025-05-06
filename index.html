@@ -38,13 +38,14 @@
   <script>
     const defaultData = {
       quests: [
-        { text: "Trouver la planque de l'agent", done: false },
-        { text: "Eliminer 10 Scavs sur Customs", done: false }
+        { text: "Trouver la planque de l'agent", done: false, category: "Marchand" },
+        { text: "Eliminer 10 Scavs sur Customs", done: false, category: "Combat" },
+        { text: "Acheter des munitions de calibre 7.62 pour le marchand", done: false, category: "Marchand" }
       ],
       items: [
         { text: "Carte d'accès rouge", collected: false },
         { text: "Clé de chambre 110", collected: false },
-        { text: "Tournevis", collected: false },
+        { text: "Tournevis", collected: false, quantity: 5 },
         { text: "Boîte de munitions", collected: false }
       ],
       notes: ""
@@ -59,18 +60,24 @@
     function render() {
       const questList = document.getElementById('quest-list');
       questList.innerHTML = '';
-      data.quests.forEach((q, i) => {
-        const li = document.createElement('li');
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.checked = q.done;
-        checkbox.onchange = () => {
-          data.quests[i].done = checkbox.checked;
-          save();
-        };
-        li.appendChild(checkbox);
-        li.appendChild(document.createTextNode(' ' + q.text));
-        questList.appendChild(li);
+      const categories = ['Marchand', 'Combat'];
+      categories.forEach(category => {
+        const categoryHeader = document.createElement('h3');
+        categoryHeader.textContent = category;
+        questList.appendChild(categoryHeader);
+        data.quests.filter(q => q.category === category).forEach((q, i) => {
+          const li = document.createElement('li');
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.checked = q.done;
+          checkbox.onchange = () => {
+            data.quests[i].done = checkbox.checked;
+            save();
+          };
+          li.appendChild(checkbox);
+          li.appendChild(document.createTextNode(' ' + q.text));
+          questList.appendChild(li);
+        });
       });
 
       const itemList = document.getElementById('item-list');
@@ -85,7 +92,7 @@
           save();
         };
         li.appendChild(checkbox);
-        li.appendChild(document.createTextNode(' ' + item.text));
+        li.appendChild(document.createTextNode(' ' + item.text + (item.quantity ? ` (x${item.quantity})` : '')));
         itemList.appendChild(li);
       });
 
