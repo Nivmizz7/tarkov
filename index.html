@@ -1,11 +1,131 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TarkovTracker for PvE</title>
+  <meta charset="UTF-8">
+  <title>TarkovTracker PVE</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    h1 { margin-bottom: 10px; }
+    section { margin-bottom: 30px; }
+    textarea { width: 100%; }
+  </style>
 </head>
 <body>
-    tarkovtracker dor pve
+  <h1>TarkovTracker PVE</h1>
+
+  <section>
+    <h2>Quêtes</h2>
+    <ul id="quest-list"></ul>
+  </section>
+
+  <section>
+    <h2>Objets à collecter</h2>
+    <ul id="item-list"></ul>
+  </section>
+
+  <section>
+    <h2>Notes</h2>
+    <textarea id="notes" placeholder="Tes notes..." rows="5"></textarea>
+  </section>
+
+  <section>
+    <h2>Import / Export</h2>
+    <button id="export">Exporter JSON</button>
+    <input type="file" id="import-file" accept="application/json">
+    <button id="import">Importer JSON</button>
+  </section>
+
+  <script>
+    const defaultData = {
+      quests: [
+        { text: "Trouver la planque de l'agent", done: false },
+        { text: "Eliminer 10 Scavs sur Customs", done: false }
+      ],
+      items: [
+        { text: "Carte d'accès rouge", collected: false },
+        { text: "Clé de chambre 110", collected: false },
+        { text: "Tournevis", collected: false },
+        { text: "Boîte de munitions", collected: false }
+      ],
+      notes: ""
+    };
+
+    let data = JSON.parse(localStorage.getItem('tarkovTrackerPVE')) || defaultData;
+
+    function save() {
+      localStorage.setItem('tarkovTrackerPVE', JSON.stringify(data));
+    }
+
+    function render() {
+      const questList = document.getElementById('quest-list');
+      questList.innerHTML = '';
+      data.quests.forEach((q, i) => {
+        const li = document.createElement('li');
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = q.done;
+        checkbox.onchange = () => {
+          data.quests[i].done = checkbox.checked;
+          save();
+        };
+        li.appendChild(checkbox);
+        li.appendChild(document.createTextNode(' ' + q.text));
+        questList.appendChild(li);
+      });
+
+      const itemList = document.getElementById('item-list');
+      itemList.innerHTML = '';
+      data.items.forEach((item, i) => {
+        const li = document.createElement('li');
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = item.collected;
+        checkbox.onchange = () => {
+          data.items[i].collected = checkbox.checked;
+          save();
+        };
+        li.appendChild(checkbox);
+        li.appendChild(document.createTextNode(' ' + item.text));
+        itemList.appendChild(li);
+      });
+
+      const notes = document.getElementById('notes');
+      notes.value = data.notes;
+      notes.oninput = () => {
+        data.notes = notes.value;
+        save();
+      };
+    }
+
+    document.getElementById('export').onclick = () => {
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'tarkovtracker_pve.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    document.getElementById('import').onclick = () => {
+      const fileInput = document.getElementById('import-file');
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          data = JSON.parse(e.target.result);
+          save();
+          render();
+        } catch (err) {
+          alert("Fichier invalide");
+        }
+      };
+      reader.readAsText(file);
+    };
+
+    render();
+  </script>
 </body>
 </html>
